@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/tallyon/chat-websocket/issues"
   },
-  "homepage": "https://github.com/tallyon/chat-websocket#readme"
+  "homepage": "https://github.com/tallyon/chat-websocket#readme",
+  "dependencies": {
+    "express": "^4.15.3",
+    "websocket": "^1.0.24"
+  }
 }

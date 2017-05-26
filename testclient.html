@@ -1,0 +1,70 @@
+<html>
+    <head></head>
+    <body>
+        Full server output is shown in javascript console, press F12. Pings are shown below.
+        <button id="btnPing" type="button">Ping chat server</button>
+        <div id="hasServerResponded">Has server accepted connection: <b>no</b></div>
+        <div id="chatServerPings">Pings from server:</div>
+        <script type="text/javascript">
+            // Server pings output will be shown there
+            var pingsOutput = document.getElementById("chatServerPings");
+            // Pressing this button sends ping to server
+            var pingBtn = document.getElementById("btnPing");
+
+            var hasServerResponded = false;
+
+            // Create websocket connection
+            const socket = new WebSocket("ws://localhost:8080", "chat");
+
+            // Connection opened
+            socket.addEventListener("open", function(event) {
+                socket.send("Hello server!");
+            });
+
+            // Listen for messages
+            socket.addEventListener("message", function(event) {
+                var parsedMessage = null;
+                // Try to parse server message
+                try {
+                    parsedMessage = JSON.parse(event.data);
+                }
+                catch(e) {
+                    // Could not parse message
+                    console.log("Unparsable message:", event.data);
+                }
+
+                // If message was parsed it will consists of type string and data object
+                if(parsedMessage != null) {
+                    // If this is the first message from server show user that server has responded
+                    if(hasServerResponded == false) {
+                        hasServerResponded = true;
+                        var serverConnectionDiv = document.getElementById("hasServerResponded");
+                        if(serverConnectionDiv != null) {
+                            serverConnectionDiv.innerHTML = "<b>Connection established!</b>";
+                        }
+                    }
+
+                    console.log("Message from server:", parsedMessage);
+
+                    if(parsedMessage.type == "PING") {
+                        // Received PING message from server, data will contain timestamp from server
+                        var response = "Received PING response from server:";
+                        if(parsedMessage.data != null) {
+                            var timestamp = parsedMessage.data.timestamp;
+                            if(timestamp != null) response += ", time: " + timestamp;
+                            pingsOutput.innerHTML += "<br/>" + response;
+                        }
+                    }
+                    else if(parsedMessage.type == "TEXT"){
+                        // Received TEXT message from server
+                    }
+                }
+            });
+
+            // Add click listener to ping button that will send text PING to chat server
+            pingBtn.addEventListener("click", function(event) {
+                socket.send("PING");
+            });
+        </script>
+    </body>
+</html>
