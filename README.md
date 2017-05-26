@@ -4,9 +4,9 @@
 
 Install all npm packages
 
-`bash
+```bash
 npm install
-`
+```
 
 And you're pretty much good to go.
 
@@ -14,8 +14,8 @@ And you're pretty much good to go.
 
 Start server with
 
-`bash
+```bash
 node ./index.js
-`
+```
 
 An open file *testclient.html* in browser, connection should be established on port 8080 to the server running and communication working (use console in developer tools to see exactly how message looks like, pings are outputted in html).
