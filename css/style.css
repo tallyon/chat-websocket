@@ -1,0 +1,48 @@
+html, body{
+    margin: 0;
+    padding: 0;
+    color: #00FF00
+}
+
+textarea{
+    background: #626977;
+    border: none;
+    resize: none;
+    width: 99%;
+    height: 50%;
+    box-sizing: border-box;
+    margin: 10px 0 10px 10px;
+    padding: 5px;
+    color: #00FF00;
+    overflow: hidden;
+}
+
+textarea:focus{
+    outline: none;
+}
+
+.container{
+    height: 100vh;
+    width: 100vw;
+}
+
+#chatWindow{
+    float: left;
+    width: 85%;
+    height: 95%;
+    background: #0F1726;
+}
+
+#messageWindow{
+    background: #282c34;
+    height: 5%;
+    width: 100%;
+    clear: both;
+}
+
+#usersWindow{
+    background: #282c34;
+    width: 15%;
+    height: 95%;
+    float: right;
+}
