@@ -3,9 +3,9 @@ var messageWindow = document.getElementById('');
 
 function toggleMenu() {
   var menuDisplay = document.getElementById('menuWindow');
-  if (menuDisplay.style.visibility === 'hidden') {
-    menuDisplay.style.visibility = 'visible';
+  if (menuDisplay.style.display === 'block') {
+    menuDisplay.style.display = 'none';
   } else {
-    menuDisplay.style.visibility = 'hidden';
+    menuDisplay.style.display = 'block';
   }
 }
