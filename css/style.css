@@ -197,6 +197,7 @@ html, body {
   margin: 0;
   padding: 0;
   background: #282c34;
+  font-family: 'Lato', sans-serif;
 }
 
 textarea {
@@ -234,7 +235,7 @@ button:focus {
 
 #chatWindow {
   background: #0F1726;
-  height: 96%;
+  height: calc(100% - 40px);
   float: left;
 }
 
@@ -246,7 +247,7 @@ button:focus {
 
 #messageWindow {
   background: #282c34;
-  min-height: 4%;
+  min-height: 40px;
   float: left;
   display: flex;
   justify-content: space-around;
@@ -254,7 +255,6 @@ button:focus {
 
 #menuWindow {
   background: #282c34;
-  padding: 5px;
   position: absolute;
   bottom: 100%;
   right: 0;
@@ -266,9 +266,21 @@ button:focus {
 #btnMenu {
   height: 20px;
   margin: 10px 10px 0 10px;
+  transition: 1s;
 }
 
 .dropUp {
   position: relative;
   display: inline-block;
+}
+
+.settingsHeader {
+  padding: 5px;
+  background: #1A2333;
+  color: #626977;
+}
+
+.settingsButton {
+  padding: 5px;
+  background: #1A2333;
 }
