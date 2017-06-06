@@ -207,8 +207,7 @@ textarea {
   resize: none;
   overflow: hidden;
   box-sizing: border-box;
-  margin-top: 10px;
-  margin-left: 10px;
+  margin: 10px 10px 0 10px;
   border-radius: 2px;
 }
 
@@ -220,7 +219,7 @@ button {
   background: #626977;
   height: 20px;
   border: none;
-  margin: 10px 10px 0 10px;
+  margin-top: 10px;
   border-radius: 2px;
 }
 
@@ -237,7 +236,6 @@ button:focus {
   background: #0F1726;
   height: 96%;
   float: left;
-  display: flex;
 }
 
 #usersWindow {
@@ -251,12 +249,25 @@ button:focus {
   min-height: 4%;
   float: left;
   display: flex;
+  justify-content: space-around;
 }
 
 #menuWindow {
   background: #282c34;
+  padding: 5px;
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  z-index: 1;
   text-align: right;
-  align-self: flex-end;
-  width: 100%;
-  display: none;
+}
+
+#btnMenu {
+  height: 20px;
+  margin: 10px 10px 0 10px;
+}
+
+.dropUp {
+  position: relative;
+  display: inline-block;
 }
