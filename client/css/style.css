@@ -200,6 +200,11 @@ html, body {
   font-family: 'Lato', sans-serif;
 }
 
+* {
+  /* White font color by default */
+  color: white;
+}
+
 textarea {
   background: #626977;
   width: 95%;
@@ -237,6 +242,7 @@ button:focus {
   background: #0F1726;
   height: calc(100% - 40px);
   float: left;
+  color: white;
 }
 
 #usersWindow {
