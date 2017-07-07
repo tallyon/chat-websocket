@@ -14,8 +14,11 @@ const socket = new WebSocket("ws://localhost:8080", "chat");
 
 // Connection opened
 socket.addEventListener("open", function(event) {
-    console.log("Opened socket to the chat server, connecting to chat...");
-    connectToServer(socket);
+    console.log("Opened socket to the chat server");
+    openRegistrationPopup(function(err, username) {
+        if(err != null) console.error("error from registration popup:", err);
+        else connectToServer(socket, username);
+    });
 });
 
 // SEND button click function that will send message
@@ -46,12 +49,24 @@ function toggleMenu() {
 }
 
 /**
+ * Open registration popup blocking chat connection until user specifies username.
+ * When username is chosen by the user call callback with specified username.
+ * 
+ * @param {function(Error, string)} callback Callback with error and chosen username string
+ */
+function openRegistrationPopup(callback) {
+    // TODO: show popup and handle username input then call callback function with username
+    console.log("pretend that user has chosen " + username + " as username and proceed with chat registration");
+    callback(null, username);
+}
+
+/**
  * Orchestrate connection transaction to the server.
  * 
  * @param {WebSocket} serverSocket WebSocket object that will be used to communicate with the server
- * @param {function(boolean)} callback after connecting to server is completed
+ * @param {string} username Chosen username to register the user in chat with
  */
-function connectToServer(serverSocket, callback) {
+function connectToServer(serverSocket, username) {
     // Add handler for message WebSocket event
     serverSocket.addEventListener("message", onMessageWebSocketHandler);
 
