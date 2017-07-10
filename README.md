@@ -22,6 +22,23 @@ An open file *testclient.html* in browser, connection should be established on p
 
 ## Client - Server transactions
 
+### Quickstart
+
+```javascript
+// Load chatClient.js script before code below
+
+// Create instance of Chat class - provide connection url, single protocol and username to register
+var chat = new Chat("ws://localhost:8080", "chat", "username");
+
+// Register callback for incoming chat message event - e.g. show messageBody in chat window
+chat.registerIncomingChatMessageCallback(function(messageBody) {
+    console.log("Got message body:", messageBody);
+});
+
+// Send chat message - e.g. after SEND button is pressed take some text field val and pass to method
+chat.sendMessage("This is test chat message that will be sent to all connected clients.");
+```
+
 ### Transaction message type format
 
 All communication between client and server should be happening over JSON payloads sent over WebSocket connection, which will be referred to as transaction messages.
