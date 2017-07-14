@@ -8,6 +8,7 @@ var chatWindow = document.getElementById("chatWindow");
 var messageWindow = document.getElementById("");
 var btnChatMessageSend = document.getElementById("btnMessageSend");
 var textAreaChatMessage = document.getElementById("textChatMessageField");
+var registrationPopup = document.getElementById("registration-popup");
 
 // Will be instantiated with new Chat() later after username is provided.
 var chat = null;
@@ -15,6 +16,9 @@ var chat = null;
 // Open registration popup for user to provide username
 openRegistrationPopup((err, username) => {
     chat = new Chat("ws://localhost:8080", "chat", username);
+
+    // Hide registration popup
+    hideRegistrationPopup();
 
     // Register callback for chat message event
     chat.registerIncomingChatMessageCallback(handleChatMessage);
@@ -58,7 +62,16 @@ function openRegistrationPopup(callback) {
     document.getElementById("register-button").onclick = function() {
         var username = usernameRegistration.value;
         callback(null, username);
+    };
 };
+
+/**
+ * Remove registration popup.
+ * 
+ */
+function hideRegistrationPopup() {
+    registrationPopup.remove();
+}
 
 /**
  * Open registration popup blocking chat connection until user specifies username.
