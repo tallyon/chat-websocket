@@ -1,55 +1,56 @@
 // This token will be received from the server upon joining
 // Use it to identify yourself when sending messages
-var serverToken = '';
+var serverToken = "";
 // Displayed name of current user
-var username = 'test' + Date.now().valueOf().toString();
+var username = "test" + Date.now().valueOf().toString();
 
-var chatWindow = document.getElementById('chatWindow');
-var messageWindow = document.getElementById('');
-var btnChatMessageSend = document.getElementById('btnMessageSend');
-var textAreaChatMessage = document.getElementById('textChatMessageField');
+var chatWindow = document.getElementById("chatWindow");
+var messageWindow = document.getElementById("");
+var btnChatMessageSend = document.getElementById("btnMessageSend");
+var textAreaChatMessage = document.getElementById("textChatMessageField");
 
 // Create websocket connection
-const socket = new WebSocket('ws://localhost:8080', 'chat');
+const socket = new WebSocket("ws://localhost:8080", "chat");
 
 // Connection opened
-socket.addEventListener('open', function(event) {
-  console.log('Opened socket to the chat server, connecting to chat...');
-  connectToServer(socket);
-});
+// socket.addEventListener("open", function(event) {
+//     console.log("Opened socket to the chat server, connecting to chat...");
+//     connectToServer(socket);
+// });
 
 // SEND button click function that will send message
-btnChatMessageSend.addEventListener('click', function(event) {
-  console.log('SEND btn clicked, server token:', serverToken);
-  // If there is no server token return
-  if (serverToken === '') return;
+btnChatMessageSend.addEventListener("click", function(event) {
+    console.log("SEND btn clicked, server token:", serverToken);
+    // If there is no server token return
+    if (serverToken === "") return;
 
-  var messageBody = textAreaChatMessage.value;
-  console.log('message body:', messageBody);
-  sendMessage(socket, serverToken, messageBody);
+    var messageBody = textAreaChatMessage.value;
+    console.log("message body:", messageBody);
+    sendMessage(socket, serverToken, messageBody);
 
-  // Clear text area
-  textAreaChatMessage.value = '';
+    // Clear text area
+    textAreaChatMessage.value = "";
 });
 
 function toggleMenu() {
-  var menuDisplay = document.getElementById('menuWindow');
-  var rotateImage = document.getElementById('btnMenu');
-  if (menuDisplay.style.display === 'block') {
-    rotateImage.style.transform = 'rotate(45deg)';
-    menuDisplay.style.display = 'none';
-  } else {
-    rotateImage.style.transform = 'rotate(-90deg)';
-    menuDisplay.style.display = 'block';
-  }
+    var menuDisplay = document.getElementById("menuWindow");
+    var rotateImage = document.getElementById("btnMenu");
+    if (menuDisplay.style.display === "block") {
+        rotateImage.style.transform = "rotate(45deg)";
+        menuDisplay.style.display = "none";
+    } else {
+        rotateImage.style.transform = "rotate(-90deg)";
+        menuDisplay.style.display = "block";
+    }
 }
 
 // User registration popup
 
 window.onload = function() {
-  document.getElementById('register-button').onclick = function() {
-    document.getElementById('registration-popup').style.display = 'none';
-  };
+    document.getElementById("register-button").onclick = function() {
+        var username = usernameRegistration.value;
+        connectToServer(socket);
+    };
 };
 
 /**
@@ -59,11 +60,11 @@ window.onload = function() {
  * @param {function(boolean)} callback after connecting to server is completed
  */
 function connectToServer(serverSocket, callback) {
-  // Add handler for message WebSocket event
-  serverSocket.addEventListener('message', onMessageWebSocketHandler);
+    // Add handler for message WebSocket event
+    serverSocket.addEventListener("message", onMessageWebSocketHandler);
 
-  // Send login request to the server to receive token
-  requestLogin(serverSocket, username);
+    // Send login request to the server to receive token
+    requestLogin(serverSocket, username);
 }
 
 /**
@@ -73,13 +74,13 @@ function connectToServer(serverSocket, callback) {
  * @param {string} username Username that will be registered
  */
 function requestLogin(serverSocket, username) {
-  var registerMessage = createRegisterTransaction(username);
+    var registerMessage = createRegisterTransaction(username);
 
-  console.log(
-    'Sending REGISTER transaction to the server, message:',
-    registerMessage
-  );
-  serverSocket.send(JSON.stringify(registerMessage));
+    console.log(
+        "Sending REGISTER transaction to the server, message:",
+        registerMessage
+    );
+    serverSocket.send(JSON.stringify(registerMessage));
 }
 
 /**
@@ -88,15 +89,15 @@ function requestLogin(serverSocket, username) {
  * @param {string} username Username that will be registered.
  */
 function createRegisterTransaction(username) {
-  var message = {
-    type: 'register',
-    timestamp: Math.floor(Date.now().valueOf() / 1000),
-    data: {
-      username: username
-    }
-  };
+    var message = {
+        type: "register",
+        timestamp: Math.floor(Date.now().valueOf() / 1000),
+        data: {
+            username: username
+        }
+    };
 
-  return message;
+    return message;
 }
 
 /**
@@ -106,18 +107,18 @@ function createRegisterTransaction(username) {
  * @param {string} body Chat message body text
  */
 function createChatTransaction(userToken, body) {
-  if (userToken == null || body == null) return null;
+    if (userToken == null || body == null) return null;
 
-  var message = {
-    type: 'chat',
-    timestamp: Math.floor(Date.now().valueOf() / 1000),
-    data: {
-      userToken: userToken,
-      body: body
-    }
-  };
+    var message = {
+        type: "chat",
+        timestamp: Math.floor(Date.now().valueOf() / 1000),
+        data: {
+            userToken: userToken,
+            body: body
+        }
+    };
 
-  return message;
+    return message;
 }
 
 /**
@@ -126,49 +127,51 @@ function createChatTransaction(userToken, body) {
  * @param {MessageEvent} event 
  */
 function onMessageWebSocketHandler(event) {
-  // Try to parse the event data
-  var parsedData = null;
+    // Try to parse the event data
+    var parsedData = null;
 
-  try {
-    parsedData = JSON.parse(event.data);
-  } catch (e) {
-    console.error('unable to parse server message:', event.data);
-    return;
-  }
+    try {
+        parsedData = JSON.parse(event.data);
+    } catch (e) {
+        console.error("unable to parse server message:", event.data);
+        return;
+    }
 
-  if (parsedData == null) {
-    console.error('received empty data from server');
-    return;
-  }
+    if (parsedData == null) {
+        console.error("received empty data from server");
+        return;
+    }
 
-  if (parsedData.type == null) {
-    console.log('received message data without type from the server, omitting');
-    return;
-  }
+    if (parsedData.type == null) {
+        console.log(
+            "received message data without type from the server, omitting"
+        );
+        return;
+    }
 
-  // Get identifier from transaction message type
-  var transactionType = transactionTypeStringToNum(parsedData.type);
+    // Get identifier from transaction message type
+    var transactionType = transactionTypeStringToNum(parsedData.type);
 
-  // Server has sent register message with user token or error
-  switch (transactionType) {
-    case 0:
-      // REGISTER
-      registerTransactionHandler(parsedData);
-      break;
-    case 1:
-      // UNREGISTER
-      break;
-    case 2:
-      // PING
-      break;
-    case 3:
-      // CHAT
-      chatTransactionHandler(parsedData);
-      break;
-    default:
-      // Unrecognized transaction type
-      return;
-  }
+    // Server has sent register message with user token or error
+    switch (transactionType) {
+        case 0:
+            // REGISTER
+            registerTransactionHandler(parsedData);
+            break;
+        case 1:
+            // UNREGISTER
+            break;
+        case 2:
+            // PING
+            break;
+        case 3:
+            // CHAT
+            chatTransactionHandler(parsedData);
+            break;
+        default:
+            // Unrecognized transaction type
+            return;
+    }
 }
 
 /**
@@ -177,11 +180,11 @@ function onMessageWebSocketHandler(event) {
  * @param {any} message Transaction message JSON payload.
  */
 function registerTransactionHandler(message) {
-  console.log('Received REGISTER transaction, message:', message);
+    console.log("Received REGISTER transaction, message:", message);
 
-  if (message.data.userToken != null) {
-    serverToken = message.data.userToken;
-  }
+    if (message.data.userToken != null) {
+        serverToken = message.data.userToken;
+    }
 }
 
 /**
@@ -190,8 +193,8 @@ function registerTransactionHandler(message) {
  * @param {any} message Transaction message JSON payload
  */
 function chatTransactionHandler(message) {
-  console.log('Received CHAT transaction, message:', message);
-  chatWindow.innerHTML += '<br/>' + message.data.body;
+    console.log("Received CHAT transaction, message:", message);
+    chatWindow.innerHTML += "<br/>" + message.data.body;
 }
 
 /**
@@ -201,13 +204,13 @@ function chatTransactionHandler(message) {
  * @param {string} text Body of chat message to send
  */
 function sendMessage(serverSocket, userToken, text) {
-  var chatMessage = createChatTransaction(userToken, text);
+    var chatMessage = createChatTransaction(userToken, text);
 
-  if (chatMessage == null) {
-    return;
-  }
+    if (chatMessage == null) {
+        return;
+    }
 
-  serverSocket.send(JSON.stringify(chatMessage));
+    serverSocket.send(JSON.stringify(chatMessage));
 }
 
 /**
@@ -218,18 +221,18 @@ function sendMessage(serverSocket, userToken, text) {
  * @returns {number}
  */
 function transactionTypeStringToNum(type) {
-  if (type == null) return -1;
+    if (type == null) return -1;
 
-  switch (type.toLowerCase()) {
-    case 'register':
-      return 0;
-    case 'unregister':
-      return 1;
-    case 'ping':
-      return 2;
-    case 'chat':
-      return 3;
-    default:
-      return -1;
-  }
+    switch (type.toLowerCase()) {
+        case "register":
+            return 0;
+        case "unregister":
+            return 1;
+        case "ping":
+            return 2;
+        case "chat":
+            return 3;
+        default:
+            return -1;
+    }
 }
