@@ -9,24 +9,31 @@ var messageWindow = document.getElementById("");
 var btnChatMessageSend = document.getElementById("btnMessageSend");
 var textAreaChatMessage = document.getElementById("textChatMessageField");
 
-// Create websocket connection
-const socket = new WebSocket("ws://localhost:8080", "chat");
+// Will be instantiated with new Chat() later after username is provided.
+var chat = null;
 
-// Connection opened
-// socket.addEventListener("open", function(event) {
-//     console.log("Opened socket to the chat server, connecting to chat...");
-//     connectToServer(socket);
-// });
+// Open registration popup for user to provide username
+openRegistrationPopup((err, username) => {
+    chat = new Chat("ws://localhost:8080", "chat", username);
+
+    // Register callback for chat message event
+    chat.registerIncomingChatMessageCallback(handleChatMessage);
+});
+
+function handleChatMessage(messageBody) {
+    console.log("got message body:", messageBody);
+    chatWindow.innerHTML += "<br/>" + messageBody;
+}
 
 // SEND button click function that will send message
 btnChatMessageSend.addEventListener("click", function(event) {
+    if (chat == null) return;
+
     console.log("SEND btn clicked, server token:", serverToken);
-    // If there is no server token return
-    if (serverToken === "") return;
 
     var messageBody = textAreaChatMessage.value;
     console.log("message body:", messageBody);
-    sendMessage(socket, serverToken, messageBody);
+    chat.sendMessage(messageBody);
 
     // Clear text area
     textAreaChatMessage.value = "";
@@ -45,33 +52,19 @@ function toggleMenu() {
 }
 
 // User registration popup
-
-window.onload = function() {
+function openRegistrationPopup(callback) {
+    // Currently registration popup is visible from the start
+    
     document.getElementById("register-button").onclick = function() {
         var username = usernameRegistration.value;
-        connectToServer(socket);
-    };
+        callback(null, username);
 };
 
 /**
- * Orchestrate connection transaction to the server.
+ * Open registration popup blocking chat connection until user specifies username.
+ * When username is chosen by the user call callback with specified username.
  * 
- * @param {WebSocket} serverSocket WebSocket object that will be used to communicate with the server
- * @param {function(boolean)} callback after connecting to server is completed
- */
-function connectToServer(serverSocket, callback) {
-    // Add handler for message WebSocket event
-    serverSocket.addEventListener("message", onMessageWebSocketHandler);
-
-    // Send login request to the server to receive token
-    requestLogin(serverSocket, username);
-}
-
-/**
- * Sends register message to the server with provided username.
- * 
- * @param {WebSocket} serverSocket WebSocket object connected to the server
- * @param {string} username Username that will be registered
+ * @param {function(Error, string)} callback Callback with error and chosen username string
  */
 function requestLogin(serverSocket, username) {
     var registerMessage = createRegisterTransaction(username);
