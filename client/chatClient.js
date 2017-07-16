@@ -21,10 +21,10 @@ class Chat {
         // Username
         this.username = username;
         // Websocket connection to the server's chat
-        this.socket = this.connectToSocket(connectionString, protocol);
+        this.socket = connectToSocket(connectionString, protocol);
         this.socket.addEventListener("open", (event) => {
             console.log("Opened socket to the chat server, connecting to chat...");
-            this.connectToChat(this.socket, this.username);
+            connectToChat(this.socket, this.username, onMessageWebSocketHandler);
         });
     }
 
@@ -35,11 +35,11 @@ class Chat {
      */
     sendMessage(text) {
         // Prevent sending empty messages
-        if(text == null || text.length < 1) return;
+        if (text == null || text.length < 1) return;
 
-        var chatMessage = this.createChatTransaction(this.serverToken, text);
+        var chatMessage = createChatTransaction(this.serverToken, text);
 
-        if(chatMessage == null) {
+        if (chatMessage == null) {
             return;
         }
 
@@ -49,178 +49,179 @@ class Chat {
     registerIncomingChatMessageCallback(handlerFunction) {
         this.onIncomingChatMessage = handlerFunction;
     }
+}
 
-    /**
-     * Orchestrate connection transaction to the server.
-     * 
-     * @param {WebSocket} serverSocket WebSocket object that will be used to communicate with the server
-     * @param {string} username Username that will be registered for currently connecting user
-     * @memberof Chat
-     */
-    connectToChat(serverSocket, username) {
-        serverSocket.addEventListener("message", this.onMessageWebSocketHandler);
+/**
+ * Orchestrate connection transaction to the server.
+ * 
+ * @param {WebSocket} serverSocket WebSocket object that will be used to communicate with the server
+ * @param {string} username Username that will be registered for currently connecting user
+ * @memberof Chat
+ */
+function connectToChat(serverSocket, username, messageHandler) {
+    serverSocket.addEventListener("message", messageHandler);
 
-        // Send login request to the server to receive token
-        this.requestLogin(serverSocket, username);
-    }
+    // Send login request to the server to receive token
+    requestLogin(serverSocket, username);
+}
 
-    /**
-     * Handles incoming REGISTER transaction message.
-     * 
-     * @param {any} message Transaction message JSON payload.
-     */
-    registerTransactionHandler(message) {
-        console.log("Received REGISTER transaction, message:", message);
+/**
+ * Connects to chat server via websocket. Returns WebSocket with server connection.
+ * 
+ * @returns {WebSocket} socket with connection to the chat server
+ * @memberof Chat
+ */
+function connectToSocket(url, protocol) {
+    // return new WebSocket("ws://localhost:8080", "chat");
+    return new WebSocket(url, protocol);
+}
 
-        if(message.data.userToken != null) {
-            this.serverToken = message.data.userToken;
+/**
+ * Sends register message to the server with provided username.
+ * 
+ * @param {WebSocket} serverSocket WebSocket object connected to the server
+ * @param {string} username Username that will be registered
+ */
+function requestLogin(serverSocket, username) {
+    var registerMessage = createRegisterTransaction(username);
+
+    console.log("Sending REGISTER transaction to the server, message:", registerMessage);
+    serverSocket.send(JSON.stringify(registerMessage));
+}
+
+/**
+ * Creates REGISTER transaction payload.
+ * 
+ * @param {string} username Username that will be registered.
+ */
+function createRegisterTransaction(username) {
+    var message = {
+        type: "register",
+        timestamp: Math.floor(Date.now().valueOf() / 1000),
+        data: {
+            username: username
         }
     }
 
-    /**
-     * Connects to chat server via websocket. Returns WebSocket with server connection.
-     * 
-     * @returns {WebSocket} socket with connection to the chat server
-     * @memberof Chat
-     */
-    connectToSocket(url, protocol) {
-        // return new WebSocket("ws://localhost:8080", "chat");
-        return new WebSocket(url, protocol);
+    return message;
+}
+
+/**
+ * Handles incoming REGISTER transaction message.
+ * 
+ * @param {any} message Transaction message JSON payload.
+ */
+function registerTransactionHandler(message) {
+    console.log("Received REGISTER transaction, message:", message);
+
+    if (message.data.userToken != null) {
+        self.serverToken = message.data.userToken;
     }
+}
 
-    /**
-     * Sends register message to the server with provided username.
-     * 
-     * @param {WebSocket} serverSocket WebSocket object connected to the server
-     * @param {string} username Username that will be registered
-     */
-    requestLogin(serverSocket, username) {
-        var registerMessage = this.createRegisterTransaction(username);
+/**
+ * Creates CHAT transaction payload.
+ * 
+ * @param {string} userToken Token of current user
+ * @param {string} body Chat message body text
+ */
+function createChatTransaction(userToken, body) {
 
-        console.log("Sending REGISTER transaction to the server, message:", registerMessage);
-        serverSocket.send(JSON.stringify(registerMessage));
-    }
+    if (userToken == null || body == null) return null;
 
-    /**
-     * Handles incoming CHAT transaction message.
-     * 
-     * @param {any} message Transaction message JSON payload
-     */
-    chatTransactionHandler(message, callback) {
-        console.log("Received CHAT transaction, message:", message);
-
-        // If callback for chat message has been registered pass message to it
-        if(callback != null) callback(message.data.body);
-    }
-
-    /**
-     * Creates REGISTER transaction payload.
-     * 
-     * @param {string} username Username that will be registered.
-     */
-    createRegisterTransaction(username) {
-        var message = {
-            type: "register",
-            timestamp: Math.floor(Date.now().valueOf() / 1000),
-            data: {
-                username: username
-            }
+    var message = {
+        type: "chat",
+        timestamp: Math.floor(Date.now().valueOf() / 1000),
+        data: {
+            userToken: userToken,
+            body: body
         }
+    };
 
-        return message;
+    return message;
+}
+
+/**
+ * Handles incoming CHAT transaction message.
+ * 
+ * @param {any} message Transaction message JSON payload
+ */
+function chatTransactionHandler(message, callback) {
+    console.log("Received CHAT transaction, message:", message);
+
+    // If callback for chat message has been registered pass message to it
+    if (callback != null) callback(message.data.body);
+}
+
+/**
+ * Converts string transaction message type to number identifier.
+ * Returns -1 if identifier is not recognized.
+ * 
+ * @param {string} type String identifying transaction message type
+ * @returns {number}
+ */
+function transactionTypeStringToNum(type) {
+
+    if (type == null) return -1;
+
+    switch (type.toLowerCase()) {
+        case "register":
+            return 0;
+        case "unregister":
+            return 1;
+        case "ping":
+            return 2;
+        case "chat":
+            return 3;
+        default:
+            return -1;
+    }
+}
+
+function onMessageWebSocketHandler(event) {
+    // Try to parse the event data
+    var parsedData = null;
+
+    try {
+        parsedData = JSON.parse(event.data);
+    } catch (e) {
+        console.error("unable to parse server message:", event.data);
+        return;
     }
 
-    /**
-     * Creates CHAT transaction payload.
-     * 
-     * @param {string} userToken Token of current user
-     * @param {string} body Chat message body text
-     */
-    createChatTransaction(userToken, body) {
-
-        if(userToken == null || body == null) return null;
-
-        var message = {
-            type: "chat",
-            timestamp: Math.floor(Date.now().valueOf() / 1000),
-            data: {
-                userToken: userToken,
-                body: body
-            }
-        };
-
-        return message;
+    if (parsedData == null) {
+        console.error("received empty data from server");
+        return;
     }
 
-    /**
-     * Converts string transaction message type to number identifier.
-     * Returns -1 if identifier is not recognized.
-     * 
-     * @param {string} type String identifying transaction message type
-     * @returns {number}
-     */
-    transactionTypeStringToNum(type) {
-
-        if(type == null) return -1;
-
-        switch(type.toLowerCase()) {
-            case "register":
-                return 0;
-            case "unregister":
-                return 1;
-            case "ping":
-                return 2;
-            case "chat":
-                return 3;
-            default:
-                return -1;
-        }
+    if (parsedData.type == null) {
+        console.log("received message data without type from the server, omitting");
+        return;
     }
 
-    onMessageWebSocketHandler(event) {
-        // Try to parse the event data
-        var parsedData = null;
+    console.log(self);
 
-        try {
-            parsedData = JSON.parse(event.data);
-        }
-        catch(e) {
-            console.error("unable to parse server message:", event.data);
+    // Get identifier from transaction message type
+    var transactionType = transactionTypeStringToNum(parsedData.type);
+
+    // Server has sent register message with user token or error
+    switch (transactionType) {
+        case 0:
+            // REGISTER
+            registerTransactionHandler(parsedData);
+            break;
+        case 1:
+            // UNREGISTER
+            break;
+        case 2:
+            // PING
+            break;
+        case 3:
+            // CHAT
+            chatTransactionHandler(parsedData, self.onIncomingChatMessage);
+            break;
+        default:
+            // Unrecognized transaction type
             return;
-        }
-
-        if(parsedData == null) {
-            console.error("received empty data from server");
-            return;
-        }
-
-        if(parsedData.type == null) {
-            console.log("received message data without type from the server, omitting");
-            return;
-        }
-
-        // Get identifier from transaction message type
-        var transactionType = self.transactionTypeStringToNum(parsedData.type);
-
-        // Server has sent register message with user token or error
-        switch(transactionType) {
-            case 0:
-                // REGISTER
-                self.registerTransactionHandler(parsedData);
-                break;
-            case 1:
-                // UNREGISTER
-                break;
-            case 2:
-                // PING
-                break;
-            case 3:
-                // CHAT
-                self.chatTransactionHandler(parsedData, self.onIncomingChatMessage);
-                break;
-            default:
-                // Unrecognized transaction type
-                return;
-        }
     }
 }
