@@ -144,7 +144,7 @@ function registerTransactionHandler(connection, message) {
     connection.sendUTF(JSON.stringify(responseRegisterMessage));
 
     // Send chat message to broadcast new user entering the chat
-    sendChatMessage(socketConnections, username + " has joind the chat!");
+    sendChatMessage(socketConnections, username, "joined chat!");
 }
 
 /**
@@ -182,14 +182,16 @@ function registerUser(username) {
  * Sends chat transaction message to clients.
  * 
  * @param {connection} connection WebSocket connection object
+ * @param {string} senderUsername Username of the sender of the message
  * @param {string} body Body text of chat message
  */
-function sendChatMessage(connections, body) {
+function sendChatMessage(connections, senderUsername, body) {
     // Create transaction message with type chat
     var transactionMessage = {
         type: "chat",
         timestamp: Math.floor(Date.now().valueOf() / 1000),
         data: {
+            username: senderUsername,
             body: body
         }
     };
@@ -217,10 +219,7 @@ function chatTransactionHandler(connection, message) {
         return;
     }
     else {
-        // Found user with provided token, create chat message body to broadcast
-        var chatMessageBody = foundUser.username + ": " + message.data.body;
-
         // Send chat message
-        sendChatMessage(socketConnections, chatMessageBody);
+        sendChatMessage(socketConnections, foundUser.username, message.data.body);
     }
 }

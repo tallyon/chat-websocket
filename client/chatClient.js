@@ -199,8 +199,6 @@ function onMessageWebSocketHandler(event) {
         return;
     }
 
-    console.log(self);
-
     // Get identifier from transaction message type
     var transactionType = transactionTypeStringToNum(parsedData.type);
 

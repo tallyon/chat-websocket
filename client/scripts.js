@@ -3,6 +3,8 @@
 var serverToken = "";
 // Displayed name of current user
 var username = "test" + Date.now().valueOf().toString();
+// Randomly generated map of usernames to colors for displaying chat users' usernames
+var usernameColorsMap = new Map();
 
 var chatWindow = document.getElementById("chatWindow");
 var messageWindow = document.getElementById("");
@@ -20,16 +22,32 @@ openRegistrationPopup((err, username) => {
     // Hide registration popup
     hideRegistrationPopup();
 
+    // Set color for this user
+    var color = getRandomColor();
+    usernameColorsMap.set(username, color);
+
     // Register callback for chat message event
     chat.registerIncomingChatMessageCallback(handleChatMessage);
 });
 
 function handleChatMessage(messageData, timestamp) {
+    var username = messageData.username;
     var messageBody = messageData.body;
     // Transform timestamp to local date
     var date = new Date(timestamp * 1000);
     console.log("got message:", messageData);
-    chatWindow.innerHTML += "<br/>" + date.toLocaleTimeString("en-US", {hour12: false}) + " " + messageBody;
+
+    // If username that sent this message does not have color associated with it in username to color map
+    // generate new color for this user
+    if(usernameColorsMap.has(username) == false)
+    {
+        var randomColor = getRandomColor();
+        usernameColorsMap.set(username, randomColor);
+    }
+
+    var color = usernameColorsMap.get(username);
+
+    chatWindow.innerHTML += "<br/><span style='color:" + color + "'>" + date.toLocaleTimeString("en-US", {hour12: false}) + " " + username + ":</span> " + messageBody;
 }
 
 // SEND button click function that will send message
@@ -74,4 +92,13 @@ function openRegistrationPopup(callback) {
  */
 function hideRegistrationPopup() {
     registrationPopup.remove();
+}
+
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
 }
