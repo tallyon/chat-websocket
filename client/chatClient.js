@@ -150,7 +150,7 @@ function chatTransactionHandler(message, callback) {
     console.log("Received CHAT transaction, message:", message);
 
     // If callback for chat message has been registered pass message to it
-    if (callback != null) callback(message.data.body);
+    if (callback != null) callback(message.data, message.timestamp);
 }
 
 /**

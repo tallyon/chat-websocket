@@ -24,9 +24,12 @@ openRegistrationPopup((err, username) => {
     chat.registerIncomingChatMessageCallback(handleChatMessage);
 });
 
-function handleChatMessage(messageBody) {
-    console.log("got message body:", messageBody);
-    chatWindow.innerHTML += "<br/>" + messageBody;
+function handleChatMessage(messageData, timestamp) {
+    var messageBody = messageData.body;
+    // Transform timestamp to local date
+    var date = new Date(timestamp * 1000);
+    console.log("got message:", messageData);
+    chatWindow.innerHTML += "<br/>" + date.toLocaleTimeString("en-US", {hour12: false}) + " " + messageBody;
 }
 
 // SEND button click function that will send message
