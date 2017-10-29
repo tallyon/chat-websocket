@@ -18,7 +18,9 @@
   },
   "homepage": "https://github.com/tallyon/chat-websocket#readme",
   "dependencies": {
+    "async": "^2.5.0",
     "express": "^4.15.3",
+    "mongoose": "^4.11.7",
     "uuid": "^3.1.0",
     "websocket": "^1.0.24"
   }
