@@ -123,20 +123,20 @@ function registerTransactionHandler(connection, message) {
             username: username,
             userToken: userToken
         };
+        
+        // Send chat message to broadcast new user entering the chat
+        sendChatMessage(wsServer.connections, username, "joined chat!");
     }
 
     // Send back register transaction message to the user
     connection.sendUTF(JSON.stringify(responseRegisterMessage));
-
-    // Send chat message to broadcast new user entering the chat
-    sendChatMessage(wsServer.connections, username, "joined chat!");
 }
 
 /**
  * Registers new user in chat. Returns user token string when successfuly added user to chat, empty string otherwise.
  * 
  * @param {string} username Username of new user
- * @return {string}
+ * @return {string} Should return user token or empty string if registration was unsuccessful.
  */
 function registerUser(username) {
     // Check if there is user with this username registered
@@ -146,20 +146,21 @@ function registerUser(username) {
 
     if(foundUser == null) {
         // Create chat client
-        var client = new ChatClient(username);
+        let client = null;
+        try {
+            client = new ChatClient(username);
+        } catch(e) {
+            console.error("unable to create chat client:", e);
+            return "";
+        }
+
         console.log("Created client: " + client.toString());
 
-        // This username is not taken
-        var newUser = {
-            username: username,
-            userToken: uuidv4()
-        };
-
         // Add new user to registered users array
-        registeredUsers.push(newUser);
+        registeredUsers.push(client);
 
         // Return user token of registered user
-        return newUser.userToken;
+        return client.userToken;
     }
     else {
         // This username is taken

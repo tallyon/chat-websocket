@@ -7,12 +7,12 @@ class ChatClient {
         assert.notEqual(name.length < 1, true);
 
         // Generate uuid
-        this.id = uuidv4();
-        this.name = name;
+        this.userToken = uuidv4();
+        this.username = name;
     }
 
     toString() {
-        return "id: " + this.id + ", name: " + this.name;
+        return "user token (id): " + this.userToken + ", username: " + this.username;
     }
 }
 

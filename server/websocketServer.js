@@ -55,7 +55,7 @@ class WSServer {
                 console.log("\tConnection", connection.socket.remoteAddress, "received message:", message);
             }
         });
-    
+
         connection.on("close", (reasonCode, description) => {
             if(this.onCloseHandler != null) {
                 this.onCloseHandler(connection, reasonCode, description);
