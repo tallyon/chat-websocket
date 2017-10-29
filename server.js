@@ -3,13 +3,13 @@ const uuidv4 = require("uuid/v4");
 const express = require("express");
 const app = express();
 
+const ChatServer = require("./server/websocketServer").WSServer;
+const ChatClient = require("./server/chatClient").ChatClient;
+
 const port = 8080;
 
 // Array with all registered users
 var registeredUsers = [];
-
-// Array with all websocket connections
-var socketConnections = [];
 
 // For each connection output current time, requesting ip and url to the console
 app.all("*", function(req, res, next) {
@@ -22,96 +22,72 @@ var server = app.listen(port, () => {
     console.log("Chat server listening on port", port);
 });
 
-var wsServer = new WebSocketServer({
-    httpServer: server,
-    autoAcceptConnections: false,
-    closeTimeout: 10000,
-    maxReceivedMessageSize: 10000
-});
+let wsServer = new ChatServer(server, handleWebSocketMessage, handleWebSocketClose);
 
-function originIsAllowed(origin) {
-    return true;
+function handleWebSocketClose(connection, reasonCode, description) {
+    console.log("Peer", connection.remoteAddress, "disconnected");
 }
 
-wsServer.on("request", function(req) {
-    if(originIsAllowed(req.origin) == false) {
-        req.reject();
-        console.log("Connection from origin", req.origin, "rejected");
-        return;
-    }
+function handleWebSocketMessage(connection, message) {
+    if(message.type === "utf8") {
+        // Parse message
+        var parsedMessage = null;
 
-    var connection = req.accept("chat", req.origin);
-    // Add this websocket connection to array of all connections
-    socketConnections.push(connection);
-    
-    var timeNow = new Date(Date.now());
-    console.log(timeNow.toUTCString(), "Connection accepted from", req.origin);
-    
-    connection.on("message", function(message) {
-        if(message.type === "utf8") {
-            // Parse message
-            var parsedMessage = null;
+        try {
+            parsedMessage = JSON.parse(message.utf8Data);
+        }
+        catch(e) {
+            console.log("Could not parse incoming message");
+            return;
+        }
 
-            try {
-                parsedMessage = JSON.parse(message.utf8Data);
-            }
-            catch(e) {
-                console.log("Could not parse incoming message");
+        console.log("Received message:", parsedMessage);
+
+        var messageType = parsedMessage.type;
+
+        if(messageType == null) {
+            console.log("Invalid message type, skip message");
+            return;
+        }
+
+        switch(messageType.toLowerCase()) {
+            case "register":
+                // REGISTER message received from the client
+                registerTransactionHandler(connection, parsedMessage);
+                break;
+            case "chat":
+                // CHAT message received from the client
+                chatTransactionHandler(connection, parsedMessage);
+                break;
+            default:
+                console.log("Unrecognized message type:", messageType);
                 return;
-            }
+        }
 
-            console.log("Received message:", parsedMessage);
-
-            var messageType = parsedMessage.type;
-
-            if(messageType == null) {
-                console.log("Invalid message type, skip message");
-                return;
-            }
-
-            switch(messageType.toLowerCase()) {
-                case "register":
-                    // REGISTER message received from the client
-                    registerTransactionHandler(connection, parsedMessage);
-                    break;
-                case "chat":
-                    // CHAT message received from the client
-                    chatTransactionHandler(connection, parsedMessage);
-                    break;
-                default:
-                    console.log("Unrecognized message type:", messageType);
-                    return;
-            }
-
-            // If message was PING send message type ping with no other text
-            if(message.utf8Data == "PING") {
-                var pingResponse = {
-                    type: "PING",
-                    data: {
-                        timestamp: Math.floor(Date.now() / 1000)
-                    }
+        // If message was PING send message type ping with no other text
+        if(message.utf8Data == "PING") {
+            var pingResponse = {
+                type: "PING",
+                data: {
+                    timestamp: Math.floor(Date.now() / 1000)
                 }
-                connection.sendUTF(JSON.stringify(pingResponse));
             }
-            // If message was not ping treat it as chat text
-            else {
-                var textResponse = {
-                    type: "TEXT",
-                    data: "This is response from server"
-                };
-                connection.sendUTF(JSON.stringify(textResponse));
-            }
+            connection.sendUTF(JSON.stringify(pingResponse));
         }
-        else if(message.type === "binary") {
-            console.log("Received binary message of", message.binaryData.length, "bytes");
-            connection.sendBytes(0);
+        // If message was not ping treat it as chat text
+        else {
+            var textResponse = {
+                type: "TEXT",
+                data: "This is response from server"
+            };
+            connection.sendUTF(JSON.stringify(textResponse));
         }
-    });
-
-    connection.on("close", function(reasonCode, description) {
-        console.log("Peer", connection.remoteAddress, "disconnected");
-    });
-});
+    }
+    else if(message.type === "binary") {
+        console.log("Received binary message of", message.binaryData.length, "bytes");
+        connection.sendBytes(0);
+    }
+}
 
 function registerTransactionHandler(connection, message) {
     if(message == null || message.data == null || message.data.username == null) return;
@@ -144,7 +120,7 @@ function registerTransactionHandler(connection, message) {
     connection.sendUTF(JSON.stringify(responseRegisterMessage));
 
     // Send chat message to broadcast new user entering the chat
-    sendChatMessage(socketConnections, username, "joined chat!");
+    sendChatMessage(wsServer.connections, username, "joined chat!");
 }
 
 /**
@@ -160,6 +136,10 @@ function registerUser(username) {
     });
 
     if(foundUser == null) {
+        // Create chat client
+        var client = new ChatClient(username);
+        console.log("Created client: " + client.toString());
+
         // This username is not taken
         var newUser = {
             username: username,
@@ -220,6 +200,6 @@ function chatTransactionHandler(connection, message) {
     }
     else {
         // Send chat message
-        sendChatMessage(socketConnections, foundUser.username, message.data.body);
+        sendChatMessage(wsServer.connections, foundUser.username, message.data.body);
     }
 }
